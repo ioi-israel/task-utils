@@ -193,7 +193,7 @@ class Validator(object):
         """
         if not isinstance(value, _type):
             raise Exception("%s is of type %s, expected: %s." %
-                            name, type(object), _type)
+                            (name, type(object), _type))
 
     @staticmethod
     def assert_value(value, _type, name, **kwargs):
