@@ -617,7 +617,8 @@ class TaskProcessor(object):
         elif isinstance(params_source, str):
             _, ext = os.path.splitext(params_source)
             if ext == ".yaml":
-                self.params = yaml.safe_load(params_source)
+                with open(params_source) as stream:
+                    self.params = yaml.safe_load(stream)
                 self.module = None
             elif ext == ".py":
                 self.module = imp.load_source("module", params_source)
