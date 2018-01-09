@@ -1,2 +1,6 @@
-# task-utils
-Utility scripts for parsing and importing CMS tasks.
+# Task utilities
+
+This repository contains utilities for developing and importing CMS tasks.
+
+## Todo
+* Complete documentation.
