@@ -882,7 +882,11 @@ class TaskProcessor(object):
             error_stream.close()
 
         if return_code != 0 and fail_abort:
-            raise Exception("Command returned non-zero: %s" % commands)
+            raise Exception("Command returned non-zero: %s\n"
+                            "Return code: %s\n"
+                            "Stdout: %s\n"
+                            "Stderr: %s\n" %
+                            (commands, return_code, stdout, stderr))
         return (return_code, stdout, stderr)
 
     @staticmethod
