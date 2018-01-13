@@ -857,6 +857,25 @@ class TaskProcessor(object):
         self.generate_checker(gen_dir)
         self.generate_testcases(gen_dir)
 
+    def get_statements(self):
+        """
+        Return a list of statements for this task, in the same format as
+        in the task module, but with absolute paths.
+        """
+        if "statements" not in self.params:
+            return []
+
+        result = []
+        statements = self.params["statements"]
+        for statement_info in statements:
+            language = statement_info["language"]
+            path = statement_info["path"]
+            result += [{
+                "language": language,
+                "path": os.path.abspath(os.path.join(self.task_dir, path))
+            }]
+        return result
+
     @staticmethod
     def run(commands, input_string="", fail_abort=True):
         """
