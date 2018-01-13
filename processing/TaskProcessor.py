@@ -410,13 +410,13 @@ class Validator(object):
 
         # Check that it is a list.
         statements = params["statements"]
-        Validator.assert_type(statements, "list", "statements")
+        Validator.assert_type(statements, list, "statements")
 
         languages = set()
         for statement_info in statements:
 
             # Each statement must be a dictionary with "language" and "path".
-            Validator.assert_type(statement_info, "dict", "statement_info")
+            Validator.assert_type(statement_info, dict, "statement_info")
             if "language" not in statement_info:
                 raise Exception("Statement must specify language.")
             if "path" not in statement_info:
