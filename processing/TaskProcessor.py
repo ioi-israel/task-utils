@@ -876,6 +876,17 @@ class TaskProcessor(object):
             }]
         return result
 
+    def get_attachments(self):
+        """
+        Return a list of attachments for this task, in absolute paths.
+        """
+        if "attachments" not in self.params:
+            return []
+
+        attachments = self.params["attachments"]
+        return [os.path.abspath(os.path.join(self.task_dir, path))
+                for path in attachments]
+
     @staticmethod
     def run(commands, input_string="", fail_abort=True):
         """
