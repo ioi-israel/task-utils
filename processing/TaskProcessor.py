@@ -94,7 +94,7 @@ class Validator(object):
         """
         Check if the given object is a string, with optional length check.
         """
-        if not isinstance(string, str):
+        if not isinstance(string, basestring):
             return False
         if min_len is not None and len(string) < min_len:
             return False
@@ -644,7 +644,7 @@ class TaskProcessor(object):
         if isinstance(params_source, dict):
             self.params = params_source
             self.module = None
-        elif isinstance(params_source, str):
+        elif isinstance(params_source, basestring):
             _, ext = os.path.splitext(params_source)
             if ext == ".yaml":
                 with open(params_source) as stream:
