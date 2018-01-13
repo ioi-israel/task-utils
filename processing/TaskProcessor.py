@@ -44,7 +44,7 @@ class Constants(object):
     min_subtask_score = 0
     max_subtask_score = 100
     max_attachments = 100
-    source_exts = {".c", ".cpp", ".cxx" ".cs", ".java"}
+    source_exts = {".c", ".cpp", ".cxx", ".cs", ".java"}
     headers_exts = {".h"}
     output_generator_exts = {".c", ".cpp", ".cxx"}
     checker_exts = {".c", ".cpp", ".cxx"}
