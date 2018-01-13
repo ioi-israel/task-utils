@@ -804,7 +804,8 @@ class TaskProcessor(object):
             # Make a safe copy of the subtask.
             subtask_copy = {
                 "score": subtask["score"],
-                "testcases": []
+                "testcases": [],
+                "num_testcases": num_testcases
             }
 
             # Add all testcases, converted to the format of describing
