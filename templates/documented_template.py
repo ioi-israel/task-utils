@@ -13,7 +13,7 @@ def get_task_params():
     """
 
     return {
-        # Task types: "Batch"/"Output"/"TwoSteps"
+        # Task types: "Batch"/"OutputOnly"/"TwoSteps"
         "type": "Batch",
 
         # Limits. Time is in seconds, memory is in MB.
