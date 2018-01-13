@@ -857,6 +857,12 @@ class TaskProcessor(object):
         self.generate_checker(gen_dir)
         self.generate_testcases(gen_dir)
 
+    def get_task_type(self):
+        """
+        Return the type of this task: "Batch"/"OutputOnly"/"TwoSteps".
+        """
+        return self.params["type"]
+
     def get_time(self):
         """
         Return the time limit for this task.
@@ -898,6 +904,57 @@ class TaskProcessor(object):
         attachments = self.params["attachments"]
         return [os.path.abspath(os.path.join(self.task_dir, path))
                 for path in attachments]
+
+    def get_graders(self):
+        """
+        Return the list of graders, in absolute paths.
+        """
+        if "graders" not in self.params:
+            return []
+
+        graders = self.params["graders"]
+        return [os.path.abspath(os.path.join(self.task_dir, path))
+                for path in graders]
+
+    def get_headers(self):
+        """
+        Return the list of headers, in absolute paths.
+        """
+        if "headers" not in self.params:
+            return []
+
+        headers = self.params["headers"]
+        return [os.path.abspath(os.path.join(self.task_dir, path))
+                for path in headers]
+
+    def get_managers(self):
+        """
+        Return the list of managers, in absolute paths.
+        """
+        if "managers" not in self.params:
+            return []
+
+        managers = self.params["managers"]
+        return [os.path.abspath(os.path.join(self.task_dir, path))
+                for path in managers]
+
+    def get_subtasks(self):
+        """
+        Return the list of subtasks.
+        """
+        return self.params["subtasks"]
+
+    def has_checker(self):
+        """
+        Return whether this task uses a checker.
+        """
+        return "checker" in self.params
+
+    def has_grader(self):
+        """
+        Return whether this task uses a grader.
+        """
+        return "graders" in self.params
 
     @staticmethod
     def run(commands, input_string="", fail_abort=True):
