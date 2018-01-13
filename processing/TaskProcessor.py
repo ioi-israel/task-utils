@@ -857,6 +857,18 @@ class TaskProcessor(object):
         self.generate_checker(gen_dir)
         self.generate_testcases(gen_dir)
 
+    def get_time(self):
+        """
+        Return the time limit for this task.
+        """
+        return self.params["time"]
+
+    def get_memory(self):
+        """
+        Return the memory limit for this task.
+        """
+        return self.params["memory"]
+
     def get_statements(self):
         """
         Return a list of statements for this task, in the same format as
