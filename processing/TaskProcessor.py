@@ -463,9 +463,10 @@ class Validator(object):
         """
 
         # Input and output are named using functions, and expected to exist.
-        if "existing_testcases_format" in params:
-            input_namer = params["existing_testcases_format"]["input"]
-            output_namer = params["existing_testcases_format"]["output"]
+        existing_format = params.get("existing_testcases_format")
+        if isinstance(existing_format, dict):
+            input_namer = existing_format["input"]
+            output_namer = existing_format["output"]
             input_name = input_namer(subtask_index, subtask_testcase_index,
                                      total_testcase_index)
             output_name = output_namer(subtask_index, subtask_testcase_index,
