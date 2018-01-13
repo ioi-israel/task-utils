@@ -48,8 +48,15 @@ def get_task_params():
         # contestant's file. There should be a manager for every language.
         "managers": ["manager.cpp"],
 
-        # Statement. A PDF viewable to the contestant in the "Statement" page.
-        "statement": "statement.pdf",
+        # Statements. Each one is a PDF in some language, viewable to the
+        # contestant in the "Statement" page. Currently the allowed language
+        # codes are "he" and "en".
+        "statements": [
+            {
+                "language": "he",
+                "path": "statement.pdf"
+            }
+        ],
 
         # Attachments for contestants.
         # Text files newlines should be converted from LF to CRLF,

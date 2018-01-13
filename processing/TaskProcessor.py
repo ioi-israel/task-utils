@@ -49,6 +49,7 @@ class Constants(object):
     output_generator_exts = {".c", ".cpp", ".cxx"}
     checker_exts = {".c", ".cpp", ".cxx"}
     statement_exts = {".pdf"}
+    statement_langs = {"he", "en"}
 
     @staticmethod
     def input_namer(subtask_index, subtask_testcase_index, _=None):
@@ -397,25 +398,54 @@ class Validator(object):
                                    base_dir=gen_dir)
 
     @staticmethod
-    def assert_task_statement(params, task_dir=None):
+    def assert_task_statements(params, task_dir=None):
         """
-        Check if the statement in the params is a valid C++ file.
+        Check if the list of statements in the params is valid.
         If it is not, raise an exception.
 
         If not specified, do nothing.
         """
-        if "statement" not in params:
+        if "statements" not in params:
             return
 
-        # Check that it is a valid file.
-        statement = params["statement"]
-        Validator.assert_value(statement, "file", "statement",
-                               base_dir=task_dir)
+        # Check that it is a list.
+        statements = params["statements"]
+        Validator.assert_type(statements, "list", "statements")
 
-        # Check that it is a PDF.
-        _, ext = os.path.splitext(statement)
-        if ext not in Constants.statement_exts:
-            raise Exception("Unknown statement extension: %s" % ext)
+        languages = set()
+        for statement_info in statements:
+
+            # Each statement must be a dictionary with "language" and "path".
+            Validator.assert_type(statement_info, "dict", "statement_info")
+            if "language" not in statement_info:
+                raise Exception("Statement must specify language.")
+            if "path" not in statement_info:
+                raise Exception("Statement must specify path.")
+
+            language = statement_info["language"]
+            path = statement_info["path"]
+
+            # Make sure each statement language is valid.
+            if language not in Constants.statement_langs:
+                raise Exception("Unknown statement language: '%s'. "
+                                "Must be one of: %s." %
+                                (language, str(Constants.statement_langs)))
+
+            # Make sure each statement language is unique.
+            if language in languages:
+                raise Exception("Statement language collision: %s" % language)
+            languages.add(language)
+
+            # Make sure it is a PDF.
+            _, ext = os.path.splitext(path)
+            if ext not in Constants.statement_exts:
+                raise Exception("Unknown statement extension: %s. "
+                                "Must be one of: %s" %
+                                (ext, str(Constants.statement_exts)))
+
+            # Make sure it is a valid file.
+            Validator.assert_value(path, "file", "statement",
+                                   base_dir=task_dir)
 
     @staticmethod
     def assert_testcase(params, subtask_index, subtask_testcase_index,
@@ -577,7 +607,7 @@ class Validator(object):
         Validator.assert_task_graders(params, task_dir)
         Validator.assert_task_managers(params, task_dir)
         Validator.assert_task_headers(params, task_dir)
-        Validator.assert_task_statement(params, task_dir)
+        Validator.assert_task_statements(params, task_dir)
         Validator.assert_task_output_generator(params, task_dir)
 
         # These properties are special: if gen_dir is given,
