@@ -106,24 +106,40 @@ class Validator(object):
     def file(path, base_dir=None):
         """
         Check if the given path is a valid, existing file.
-        Paths are checked with respect to base_dir if it is not None.
+        Paths must be relative to base_dir if it is not None.
         """
         if not Validator.string(path):
             return False
         if base_dir is not None:
             path = os.path.join(base_dir, path)
+
+            # Security check: make sure the given path is actually
+            # inside the base directory. This prevents exposing server
+            # files when developing a task.
+            path = os.path.realpath(path)
+            if not path.startswith(base_dir):
+                return False
+
         return os.path.isfile(path)
 
     @staticmethod
     def dir(path, base_dir=None):
         """
         Check if the given path is a valid, existing directory.
-        Paths are checked with respect to base_dir if it is not None.
+        Paths must be relative to base_dir if it is not None.
         """
         if not Validator.string(path):
             return False
         if base_dir is not None:
             path = os.path.join(base_dir, path)
+
+            # Security check: make sure the given path is actually
+            # inside the base directory. This prevents exposing server
+            # files when developing a task.
+            path = os.path.realpath(path)
+            if not path.startswith(base_dir):
+                return False
+
         return os.path.isdir(path)
 
     @staticmethod
@@ -262,7 +278,7 @@ class Validator(object):
                                max_val=Constants.max_memory)
 
     @staticmethod
-    def assert_task_attachments(params, task_dir=None):
+    def assert_task_attachments(params, task_dir):
         """
         Check if the attachments in the params is a valid list of files.
         If base_dir is given, it is checked that files exist.
@@ -279,7 +295,7 @@ class Validator(object):
                                base_dir=task_dir)
 
     @staticmethod
-    def assert_task_graders(params, task_dir=None):
+    def assert_task_graders(params, task_dir):
         """
         Check if the graders list in the params is a valid list of files.
         If it is not, raise an exception.
@@ -305,7 +321,7 @@ class Validator(object):
             ext_set.add(ext)
 
     @staticmethod
-    def assert_task_managers(params, task_dir=None):
+    def assert_task_managers(params, task_dir):
         """
         Check if the managers list in the params is a valid list of files.
         If it is not, raise an exception.
@@ -327,7 +343,7 @@ class Validator(object):
                 raise Exception("Unknown manager extension: %s" % ext)
 
     @staticmethod
-    def assert_task_headers(params, task_dir=None):
+    def assert_task_headers(params, task_dir):
         """
         Check if the headers list in the params is a valid list of files.
         If it is not, raise an exception.
@@ -349,7 +365,7 @@ class Validator(object):
                 raise Exception("Unknown header extension: %s" % ext)
 
     @staticmethod
-    def assert_task_output_generator(params, task_dir=None):
+    def assert_task_output_generator(params, task_dir):
         """
         Check if the output generator in the params is a valid C++ file.
         If it is not, raise an exception.
@@ -371,7 +387,7 @@ class Validator(object):
             raise Exception("Unknown generator extension: %s" % ext)
 
     @staticmethod
-    def assert_task_checker(params, task_dir=None, gen_dir=None):
+    def assert_task_checker(params, task_dir, gen_dir=None):
         """
         Check if the checker in the params is a valid C++ file.
         If it is not, raise an exception.
@@ -398,7 +414,7 @@ class Validator(object):
                                    base_dir=gen_dir)
 
     @staticmethod
-    def assert_task_statements(params, task_dir=None):
+    def assert_task_statements(params, task_dir):
         """
         Check if the list of statements in the params is valid.
         If it is not, raise an exception.
@@ -449,7 +465,7 @@ class Validator(object):
 
     @staticmethod
     def assert_testcase(params, subtask_index, subtask_testcase_index,
-                        total_testcase_index, task_dir=None, gen_dir=None):
+                        total_testcase_index, task_dir, gen_dir=None):
         """
         Check if the given testcase is valid.
         If gen_dir is specified, the input file is expected to be
@@ -496,7 +512,7 @@ class Validator(object):
         Validator.assert_value(testcase, "dict", "testcase")
 
     @staticmethod
-    def assert_subtask(params, subtask_index, acc_testcases, task_dir=None,
+    def assert_subtask(params, subtask_index, acc_testcases, task_dir,
                        gen_dir=None):
         """
         Check if the given subtask inside the task params is valid.
@@ -548,7 +564,7 @@ class Validator(object):
         return num_testcases
 
     @staticmethod
-    def assert_task_subtasks(params, task_dir=None, gen_dir=None):
+    def assert_task_subtasks(params, task_dir, gen_dir=None):
         """
         Check if the subtasks in the task params are valid.
         Raise an exception if not.
