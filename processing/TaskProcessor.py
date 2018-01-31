@@ -194,6 +194,19 @@ class Validator(object):
         return all(Validator.file(path, base_dir=base_dir) for path in paths)
 
     @staticmethod
+    def numbers_list(numbers, min_list_len=None, max_list_len=None,
+                     min_val=None, max_val=None):
+        """
+        Check if the given object is a list of numbers, with optional
+        range check.
+        """
+
+        if not Validator.list(numbers, min_list_len, max_list_len):
+            return False
+        return all(Validator.number(number, min_val=min_val, max_val=max_val)
+                   for number in numbers)
+
+    @staticmethod
     def assert_key_exists(container, key):
         """
         Check if the given dictionary/set contains the given key.
@@ -242,6 +255,8 @@ class Validator(object):
             validate_func = Validator.strings_list
         elif _type == "files_list":
             validate_func = Validator.files_list
+        elif _type == "numbers_list":
+            validate_func = Validator.numbers_list
 
         if validate_func is None:
             Validator.assert_type(value, _type, name)
@@ -536,6 +551,17 @@ class Validator(object):
                                min_val=Constants.min_subtask_score,
                                max_val=Constants.max_subtask_score)
 
+        # Other subtasks contained in it.
+        # Each subtask can contain previous subtasks (1-based indices).
+        if "contains" in subtask:
+            other_subtasks = subtask["contains"]
+            Validator.assert_value(other_subtasks,
+                                   "numbers_list",
+                                   "contained subtasks",
+                                   max_list_len=subtask_index,
+                                   min_val=1,
+                                   max_val=subtask_index)
+
         # Existing testcases.
         if "existing_testcases_format" in params:
             if "num_testcases" not in subtask:
@@ -818,11 +844,18 @@ class TaskProcessor(object):
             else:
                 num_testcases = len(subtask["testcases"])
 
+            # Get the list of other subtasks contained in it.
+            if "contains" in subtask:
+                other_subtasks = subtask["contains"]
+            else:
+                other_subtasks = []
+
             # Make a safe copy of the subtask.
             subtask_copy = {
                 "score": subtask["score"],
                 "testcases": [],
-                "num_testcases": num_testcases
+                "num_testcases": num_testcases,
+                "contains": other_subtasks
             }
 
             # Add all testcases, converted to the format of describing
