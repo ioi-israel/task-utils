@@ -95,12 +95,22 @@ def get_task_params():
         #
         # If dealing with existing testcases, each subtask must provide a
         # "num_testcases" field instead of "testcases".
+        #
+        # Subtasks can contain previous ones: "contains" is an optional
+        # field of 1-based subtask indices. This does not affect files,
+        # but it changes the way CMS calculates scores and the list of
+        # testcases it shows to the contestants.
+        # Containment is not recursive. For example, if we want
+        # each subtask to depend on all previous testcases, then subtask 2
+        # should specify "contains: [1]", subtask 3 should specify
+        # "contains: [1, 2]", and so on. If subtask 3 only specified
+        # "contains: [2]", then it would not contain subtask 1.
         "subtasks": [
             {"score": 10, "testcases": [
                 {"seed": 123, "n": 2},
                 {"seed": 456, "n": 2}
             ]},
-            {"score": 90, "testcases": [
+            {"score": 90, "contains": [1], "testcases": [
                 {"seed": 432, "n": 10},
                 {"seed": 431, "n": 10}
             ]}
