@@ -73,6 +73,17 @@ def get_task_params():
         # Compilation: g++ -Wall -O2 -std=c++0x prog.cpp
         "output_generator": "prog.cpp",
 
+        # Submissions to perform automatically when updating the task.
+        # Each item should be a dictionary containing:
+        # name: a custom name for this submission.
+        # score: the intended score for this submission.
+        # files: a list of files for this submission, relative to the
+        # task directory. Currently only batch tasks are supported,
+        # so the list should be exactly one file in C++/Java/C#.
+        "auto_submit": [
+            {"name": "NlogN", "score": 100, "files": ["nlogn.cpp"]}
+        ],
+
         # Option to read testcases from the task directory instead of
         # generating them. In this case, each subtask (below) needs to
         # specify a "num_testcases" field.

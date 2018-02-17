@@ -44,6 +44,9 @@ class Constants(object):
     min_subtask_score = 0
     max_subtask_score = 100
     max_attachments = 100
+    max_auto_submits = 30
+    max_auto_submit_len = 30
+    max_auto_submit_score = 1000
     source_exts = {".c", ".cpp", ".cxx", ".cs", ".java"}
     headers_exts = {".h"}
     output_generator_exts = {".c", ".cpp", ".cxx"}
@@ -612,6 +615,62 @@ class Validator(object):
             acc_testcases += num_testcases
 
     @staticmethod
+    def assert_auto_submit(params, task_dir):
+        """
+        Check if the "auto_submit" field is a valid list of submissions.
+        If it is not, raise an exception.
+
+        If not specified, do nothing.
+        """
+
+        if "auto_submit" not in params:
+            return
+
+        submit_items = params["auto_submit"]
+
+        if not Validator.list(submit_items, 0, Constants.max_auto_submits):
+            raise Exception("Expected \"auto_submit\" to be a list of"
+                            " up to %s items." % len(submit_items))
+
+        if not submit_items:
+            return
+
+        if params["type"] != "Batch":
+            raise Exception("Auto submit only supported in "
+                            "batch tasks currently.")
+
+        # The number of files per submission. Update this when adding
+        # support for other task types.
+        num_submission_files = 1
+
+        for submit_item in submit_items:
+            # A submission item has 3 fields: name, score, files.
+            Validator.assert_value(submit_item, "dict", "auto submit item",
+                                   min_len=3, max_len=3)
+
+            name = submit_item.get("name")
+            score = submit_item.get("score")
+            files = submit_item.get("files")
+            Validator.assert_value(name, "string", "auto submit name",
+                                   min_len=1,
+                                   max_len=Constants.max_auto_submit_len)
+            Validator.assert_value(score, "number", "auto submit score",
+                                   allow_float=True, min_val=0,
+                                   max_val=Constants.max_auto_submit_score)
+            Validator.assert_value(files, "files_list", "auto submit files",
+                                   base_dir=task_dir,
+                                   min_list_len=num_submission_files,
+                                   max_list_len=num_submission_files)
+
+            # When supporting output only tasks, consider
+            # allowing text files here.
+            for path in files:
+                _, ext = os.path.splitext(path)
+                if ext not in Constants.source_exts:
+                    raise Exception("Auto submit file must have a "
+                                    "valid source file extension.")
+
+    @staticmethod
     def assert_task_params(params, task_dir, gen_dir=None):
         """
         Validate the given task parameters dictionary.
@@ -652,6 +711,7 @@ class Validator(object):
         Validator.assert_task_headers(params, task_dir)
         Validator.assert_task_statements(params, task_dir)
         Validator.assert_task_output_generator(params, task_dir)
+        Validator.assert_auto_submit(params, task_dir)
 
         # These properties are special: if gen_dir is given,
         # we expect the corresponding generated files to exist.
@@ -994,6 +1054,24 @@ class TaskProcessor(object):
         Return the list of subtasks.
         """
         return self.params["subtasks"]
+
+    def get_auto_submit_items(self):
+        """
+        Return the list of auto submit items, in absolute paths.
+        """
+        if "auto_submit" not in self.params:
+            return []
+
+        # Create the submission items with absolute paths.
+        items = self.params["auto_submit"]
+        new_items = []
+        for item in items:
+            new_files = [os.path.abspath(os.path.join(self.task_dir, path))
+                         for path in item["files"]]
+            new_item = {"name": item["name"], "score": item["score"],
+                        "files": new_files}
+            new_items += [new_item]
+        return new_items
 
     def has_checker(self):
         """
