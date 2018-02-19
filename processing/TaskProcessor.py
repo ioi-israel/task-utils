@@ -961,12 +961,27 @@ class TaskProcessor(object):
         """
         Generate everything to the given gen_dir.
         The YAML file is written to gen_dir/module.yaml by default.
+
+        After generation, the file "gen.ok" is created.
+        If the file already exists and there are no files more recent
+        than it in the task directory, do nothing.
+
+        The file "gen.error" is created initially, and deleted before
+        returning. So if it exists, there were errors.
         """
+
+        if not TaskProcessor.needs_generating(self.task_dir, gen_dir):
+            return
+
+        TaskProcessor.mark_error(gen_dir)
+
         if yaml_path is None:
             yaml_path = os.path.join(gen_dir, "module.yaml")
         self.generate_yaml(gen_dir, yaml_path)
         self.generate_checker(gen_dir)
         self.generate_testcases(gen_dir)
+
+        TaskProcessor.mark_ok(gen_dir)
 
     def get_task_type(self):
         """
@@ -1159,6 +1174,73 @@ class TaskProcessor(object):
         base_command = ["/usr/bin/g++", "-Wall", "-O2", "-std=c++0x", "-o"]
         _, _, stderr = TaskProcessor.run(base_command + [out_path] + sources)
         return stderr
+
+    @staticmethod
+    def touch(path):
+        """
+        Touch a file, like the Unix touch command.
+        """
+        with open(path, "a"):
+            os.utime(path, None)
+
+    @staticmethod
+    def mark_error(gen_dir):
+        """
+        Mark the given generation directory as having an error.
+        This touches a file "gen.error", and removes "gen.ok"
+        if present.
+        """
+        gen_error = os.path.join(gen_dir, "gen.error")
+        gen_ok = os.path.join(gen_dir, "gen.ok")
+        TaskProcessor.touch(gen_error)
+        if os.path.isfile(gen_ok):
+            os.remove(gen_ok)
+
+    @staticmethod
+    def mark_ok(gen_dir):
+        """
+        Mark the given generation directory as okay.
+        This touches a file "gen.ok", and removes "gen.error"
+        if present.
+        """
+        gen_error = os.path.join(gen_dir, "gen.error")
+        gen_ok = os.path.join(gen_dir, "gen.ok")
+        TaskProcessor.touch(gen_ok)
+        if os.path.isfile(gen_error):
+            os.remove(gen_error)
+
+    @staticmethod
+    def needs_generating(task_dir, gen_dir):
+        """
+        Check whether this task needs to be generated.
+        A task needs to be generated under any one of the conditions:
+        - The generation directory was marked as having an error.
+        - The generation directory was not marked as okay.
+        - There is a file newer than gen.ok in the task directory.
+          Hidden directories (starting with a dot) aren't traversed.
+        """
+        gen_error = os.path.join(gen_dir, "gen.error")
+        gen_ok = os.path.join(gen_dir, "gen.ok")
+        if os.path.isfile(gen_error) or not os.path.isfile(gen_ok):
+            return True
+
+        # Last generating time.
+        last_ok_time = os.path.getmtime(gen_ok)
+
+        # We traverse the task directory. Top down means we can change
+        # the list of directories in place. We use this to skip hidden
+        # directories.
+        for (root, dirs, files) in os.walk(task_dir, topdown=True):
+            # Change the list of directories in place (slice assignment).
+            dirs[:] = [dirname for dirname in dirs
+                       if not dirname.startswith(".")]
+
+            for filename in files:
+                file_path = os.path.join(root, filename)
+                if os.path.getmtime(file_path) > last_ok_time:
+                    return True
+
+        return False
 
 
 def main():
