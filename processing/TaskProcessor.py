@@ -53,6 +53,8 @@ class Constants(object):
     checker_exts = {".c", ".cpp", ".cxx"}
     statement_exts = {".pdf"}
     statement_langs = {"he", "en"}
+    gen_check_ignore_exts = {".lyx", ".pdf", ".doc", ".docx", ".txt"}
+    gen_check_ignore_dirs = {"auto.gen"}
 
     @staticmethod
     def input_namer(subtask_index, subtask_testcase_index, _=None):
@@ -1217,7 +1219,7 @@ class TaskProcessor(object):
         - The generation directory was marked as having an error.
         - The generation directory was not marked as okay.
         - There is a file newer than gen.ok in the task directory.
-          Hidden directories (starting with a dot) aren't traversed.
+          Irrelevant directories and files aren't traversed.
         """
         gen_error = os.path.join(gen_dir, "gen.error")
         gen_ok = os.path.join(gen_dir, "gen.ok")
@@ -1228,19 +1230,42 @@ class TaskProcessor(object):
         last_ok_time = os.path.getmtime(gen_ok)
 
         # We traverse the task directory. Top down means we can change
-        # the list of directories in place. We use this to skip hidden
+        # the list of directories in place. We use this to skip irrelevant
         # directories.
         for (root, dirs, files) in os.walk(task_dir, topdown=True):
             # Change the list of directories in place (slice assignment).
             dirs[:] = [dirname for dirname in dirs
-                       if not dirname.startswith(".")]
+                       if not TaskProcessor.is_dir_irrelevant(root, dirname)]
 
             for filename in files:
+                if TaskProcessor.is_file_irrelevant(root, filename):
+                    continue
                 file_path = os.path.join(root, filename)
                 if os.path.getmtime(file_path) > last_ok_time:
                     return True
 
         return False
+
+    @staticmethod
+    def is_file_irrelevant(_, filename):
+        """
+        Check if the given file is irrelevant for task generation.
+        This is used to skip files when checking if the task changed.
+        """
+        if filename.startswith("."):
+            return True
+
+        _, ext = os.path.splitext(filename)
+        return ext in Constants.gen_check_ignore_exts
+
+    @staticmethod
+    def is_dir_irrelevant(_, dirname):
+        """
+        Check if the given directory is irrelevant for task generation.
+        This is used to skip files when checking if the task changed.
+        """
+        return dirname.startswith(".") or \
+            dirname in Constants.gen_check_ignore_dirs
 
 
 def main():
