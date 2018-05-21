@@ -53,7 +53,7 @@ class Constants(object):
     checker_exts = {".c", ".cpp", ".cxx"}
     statement_exts = {".pdf"}
     statement_langs = {"he", "en"}
-    gen_check_ignore_exts = {".lyx", ".pdf", ".doc", ".docx", ".txt"}
+    gen_check_ignore_exts = {".lyx", ".doc", ".docx"}
     gen_check_ignore_dirs = {"auto.gen"}
 
     @staticmethod
