@@ -32,7 +32,7 @@ class Constants(object):
 
     types = {"Batch", "OutputOnly", "TwoSteps"}
     min_time = 0.1
-    max_time = 10
+    max_time = 15
     min_memory = 16
     max_memory = 1024
     min_subtasks = 1
